@@ -20,7 +20,7 @@ available to the public.  Features include:
 * password expiration module (Active Directory only)
   + warning if your password's about to expire, forced password change
     once it's expired
-* reCAPTCHA	integration with password change/reset pages
+* reCAPTCHA integration with password change/reset pages
 * support for multiple LDAP servers
     
 Build & Installation
@@ -149,6 +149,9 @@ are possible future improvements this project could use:
 * make the configuration a little more clear
 * add flags for enabling/disabling certains aspects of the password manager
 * unit/integration tests would be nice
+* remove dependence on CAS-LPPE code base if Active Directory support isn't
+  required
+* add back-end implementations other than LDAP
 * a little more Active Directory QA.  After the code was given to Onondaga, 
   changes had to be made before it could go public.  I unfortunately didn't
   have ready access to an AD server, so that part could use a little more
