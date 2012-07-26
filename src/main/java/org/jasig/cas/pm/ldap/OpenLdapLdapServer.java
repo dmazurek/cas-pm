@@ -1,4 +1,4 @@
-package org.jasig.cas.pm.service;
+package org.jasig.cas.pm.ldap;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -12,6 +12,7 @@ import javax.naming.directory.ModificationItem;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jasig.cas.pm.service.PasswordWarningInfo;
 import org.springframework.beans.factory.InitializingBean;
 
 public class OpenLdapLdapServer extends AbstractLdapServer implements

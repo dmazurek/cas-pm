@@ -16,12 +16,19 @@ import org.springframework.webflow.execution.RequestContext;
 public class LookupSecurityQuestionAction extends AbstractAction {
     
     public static final String SECURITY_CHALLENGE_ATTRIBUTE = "securityChallenge";
-	private PasswordManagerService passwordManagerService; 
+	private PasswordManagerService passwordManagerService;
+	private boolean customSecurityQuestionRequired = false;
 
     @Override
-    protected Event doExecute(RequestContext req) throws Exception {
+    protected Event doExecute(RequestContext requestContext) throws Exception {
     	
-    	MutableAttributeMap flowScope = req.getFlowScope();
+    	// If we don't want users to set their own security questions,
+    	// bypass this action.
+    	if(!customSecurityQuestionRequired) {
+    		return success();
+    	}
+    	
+    	MutableAttributeMap flowScope = requestContext.getFlowScope();
     	Credentials creds = (Credentials)flowScope.get("credentials");
     	String username = null;
     	
@@ -46,12 +53,21 @@ public class LookupSecurityQuestionAction extends AbstractAction {
     		return error();
     	} else {
     		logger.debug("Putting security questions in flow scope for " + username);
-            req.getFlowScope().put(SECURITY_CHALLENGE_ATTRIBUTE, securityChallenge);
+            flowScope.put(SECURITY_CHALLENGE_ATTRIBUTE, securityChallenge);
     	}
     	
         // user has set up their security questions
         return success();  	
     }
+
+    /**
+     * <p>Determines if users are required to set custom security questions.</p>
+     * @param customSecurityQuestionRequired
+     */
+	public void setCustomSecurityQuestionRequired(
+			boolean customSecurityQuestionRequired) {
+		this.customSecurityQuestionRequired = customSecurityQuestionRequired;
+	}
 
 	public void setPasswordManagerService(
 			PasswordManagerService passwordManagerService) {

@@ -1,7 +1,8 @@
-package org.jasig.cas.pm.service;
+package org.jasig.cas.pm.ldap;
 
 import javax.naming.directory.ModificationItem;
 
+import org.jasig.cas.pm.service.PasswordWarningInfo;
 import org.jasig.cas.pm.web.flow.SecurityChallenge;
 
 public interface LdapServer {

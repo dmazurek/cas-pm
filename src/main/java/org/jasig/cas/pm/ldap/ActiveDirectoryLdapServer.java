@@ -1,4 +1,4 @@
-package org.jasig.cas.pm.service;
+package org.jasig.cas.pm.ldap;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -15,6 +15,7 @@ import javax.naming.directory.SearchControls;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jasig.cas.pm.PasswordManagerException;
+import org.jasig.cas.pm.service.PasswordWarningInfo;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.ldap.core.AttributesMapper;
 

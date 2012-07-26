@@ -1,25 +1,24 @@
 <%--
-
-    Licensed to Jasig under one or more contributor license
-    agreements. See the NOTICE file distributed with this work
-    for additional information regarding copyright ownership.
-    Jasig licenses this file to you under the Apache License,
-    Version 2.0 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a
-    copy of the License at:
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on
-    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    KIND, either express or implied. See the License for the
-    specific language governing permissions and limitations
-    under the License.
-
---%>
+  ~ Licensed to Jasig under one or more contributor license
+  ~ agreements. See the NOTICE file distributed with this work
+  ~ for additional information regarding copyright ownership.
+  ~ Jasig licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file
+  ~ except in compliance with the License.  You may obtain a
+  ~ copy of the License at the following location:
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  --%>
 
 <jsp:directive.include file="includes/top.jsp" />
+<link type="text/css" rel="stylesheet" href="<c:url value="/css/cas-pm.css" />" />
 <jsp:directive.page import="net.tanesha.recaptcha.ReCaptcha" />
 <jsp:directive.page import="net.tanesha.recaptcha.ReCaptchaFactory" />
 <c:set var="recaptchaPublicKey" scope="page" value="${recaptchaPublicKey}"/>
@@ -53,7 +52,7 @@
             </c:when>
             <c:otherwise>
                 <spring:message code="pm.changePassword.heading-text" />
-                <c:if test="${!flowRequestContext.currentState.id != 'setPassword'}">        
+                <c:if test="${flowRequestContext.currentState.id != 'setPassword'}">        
                     <spring:message code="pm.changePassword.heading-text.enter-current-pwd" />
                 </c:if>
             </c:otherwise>

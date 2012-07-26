@@ -1,20 +1,29 @@
-package org.jasig.cas.pm.service;
+package org.jasig.cas.pm.ldap;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.Name;
+import javax.naming.NameClassPair;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
+import javax.naming.directory.SearchControls;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jasig.cas.authentication.handler.NoOpPrincipalNameTransformer;
+import org.jasig.cas.authentication.handler.PrincipalNameTransformer;
+import org.jasig.cas.pm.service.PasswordWarningInfo;
 import org.jasig.cas.pm.web.flow.SecurityChallenge;
 import org.jasig.cas.pm.web.flow.SecurityQuestion;
+import org.jasig.cas.util.LdapUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.AttributesMapper;
@@ -22,7 +31,9 @@ import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.NameClassPairCallbackHandler;
 import org.springframework.ldap.core.ObjectRetrievalException;
+import org.springframework.ldap.core.SearchExecutor;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.Filter;
@@ -41,6 +52,31 @@ public abstract class AbstractLdapServer implements LdapServer, InitializingBean
 	protected String description;
 	protected String searchBase;
 	protected boolean ignorePartialResultException = false;
+	
+
+    /** The default maximum number of results to return. */
+    private static final int DEFAULT_MAX_NUMBER_OF_RESULTS = 1000;
+
+    /** The default timeout. */
+    private static final int DEFAULT_TIMEOUT = 1000;
+
+    /** The scope. */
+    @Min(0)
+    @Max(2)
+    private int scope = SearchControls.SUBTREE_SCOPE;
+
+    /** The maximum number of results to return. */
+    private int maxNumberResults = DEFAULT_MAX_NUMBER_OF_RESULTS;
+
+    /** The amount of time to wait. */
+    private int timeout = DEFAULT_TIMEOUT;
+    
+    /** The filter path to the uid of the user. */
+    @NotNull
+    private String filter;
+    
+    @NotNull
+    private PrincipalNameTransformer principalNameTransformer = new NoOpPrincipalNameTransformer();
 	
 	@Override
 	public void ldapModify(String username, ModificationItem[] modificationItems) {
@@ -93,32 +129,62 @@ public abstract class AbstractLdapServer implements LdapServer, InitializingBean
 	protected Object ldapLookup(String username, AttributesMapper mapper) {
 		
 		@SuppressWarnings("unchecked")
-		List<Object> results = ldapTemplate.search("", usernameAttr + "=" + username, mapper);
+		List<Object> results = ldapTemplate.search(searchBase, usernameAttr + "=" + username, mapper);
 		
 		if(results.size() == 0) {
-			throw new NameNotFoundException("Couldn't find " + username + " in " + ldapContextSource.getBaseLdapPathAsString());
+			throw new NameNotFoundException("Couldn't find " + username + " in " 
+					+ ldapContextSource.getBaseLdapPathAsString() 
+					+ " with base " + searchBase);
 		} else if(results.size() > 1) {
-			logger.warn("Multiple results found for " + username + " under " + ldapContextSource.getBaseLdapPathAsString());
-			throw new ObjectRetrievalException("Multiple results found for " + username + " in " + ldapContextSource.getBaseLdapPathAsString());
+			logger.warn("Multiple results found for " + username + " under " 
+					+ ldapContextSource.getBaseLdapPathAsString() + " with base "
+					+ searchBase);
+			throw new ObjectRetrievalException("Multiple results found for " 
+					+ username + " in " + ldapContextSource.getBaseLdapPathAsString()
+					+ " with base " + searchBase);
 		}
 		
-		logger.debug("Found result for " + username + " under base " + ldapContextSource.getBaseLdapPathAsString());
+		logger.debug("Found result for " + username + " under base " 
+				+ ldapContextSource.getBaseLdapPathAsString() + " with "
+				+ "searchBase " + searchBase);
 		return results.get(0);
 	}
 	
 	protected DistinguishedName searchForDn(String username) {
-		logger.debug("Searching for DN for " + username);
-		@SuppressWarnings("unchecked")
-		List<Name> names = ldapTemplate.search("", usernameAttr + "=" + username, new DistinguishedNameContextMapper());
-		if(names.size() == 0) {
-			throw new NameNotFoundException("Couldn't find " + username + " in " + ldapContextSource.getBaseLdapPathAsString());
-		} else if(names.size() > 1) {
-			logger.warn("Multiple results found for " + username + " under " + ldapContextSource.getBaseLdapPathAsString());
-			throw new ObjectRetrievalException("Multiple results found for " + username + " in " + ldapContextSource.getBaseLdapPathAsString());
-		}
+		logger.debug("Searching for DN for " + usernameAttr + "=" + username);
 		
-		logger.debug("Found name: " + names.get(0));
-		return new DistinguishedName(names.get(0));
+		final List<String> cns = new ArrayList<String>();
+        
+        final SearchControls searchControls = getSearchControls();
+        
+        final String base = this.searchBase;
+        final String transformedUsername = getPrincipalNameTransformer().transform(username);
+        final String filter = LdapUtils.getFilterWithValues(getFilter(), transformedUsername);
+        
+        this.getLdapTemplate().search(
+            new SearchExecutor() {
+                @SuppressWarnings("rawtypes")
+				public NamingEnumeration executeSearch(final DirContext context) throws NamingException {
+                    return context.search(base, filter, searchControls);
+                }
+            },
+            new NameClassPairCallbackHandler(){
+                public void handleNameClassPair(final NameClassPair nameClassPair) {
+                    cns.add(nameClassPair.getNameInNamespace());
+                }
+            });
+        
+        if (cns.isEmpty()) {
+            logger.info("Search for " + filter + " returned 0 results.");
+			throw new NameNotFoundException("Couldn't find " + username + " in " + ldapContextSource.getBaseLdapPathAsString());
+        }
+        if (cns.size() > 1) {
+            logger.warn("Search for " + filter + " returned multiple results, which is not allowed.");
+			throw new ObjectRetrievalException("Multiple results found for " + username + " in " + ldapContextSource.getBaseLdapPathAsString());
+        }
+		
+		logger.debug("Found name: " + cns.get(0));
+		return new DistinguishedName(cns.get(0));
 	}
 
 	protected Filter createUserFilter(String username) {
@@ -229,8 +295,7 @@ public abstract class AbstractLdapServer implements LdapServer, InitializingBean
 		
 		try {
 			logger.debug("Authenticating as " + dn.encode());
-			String baseDn = ldapContextSource.getBaseLdapPathAsString();
-			ldapContextSource.getContext(dn.encode() + "," + baseDn, password);
+			ldapContextSource.getContext(dn.encode(), password);
 			return true;
 		} catch(org.springframework.ldap.NamingException ex) {
 			logger.debug("NamingException verifying password",ex);
@@ -309,17 +374,90 @@ public abstract class AbstractLdapServer implements LdapServer, InitializingBean
 		this.ignorePartialResultException = ignorePartialResultException;
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		ldapTemplate = new LdapTemplate(ldapContextSource);
-		ldapTemplate.setIgnorePartialResultException(ignorePartialResultException);
-	}
-
 	public String getSearchBase() {
 		return searchBase;
 	}
 
 	public void setSearchBase(String searchBase) {
 		this.searchBase = searchBase;
+	}
+	
+    private SearchControls getSearchControls() {
+        final SearchControls constraints = new SearchControls();
+        constraints.setSearchScope(this.scope);
+        constraints.setReturningAttributes(new String[0]);
+        constraints.setTimeLimit(this.timeout);
+        constraints.setCountLimit(this.maxNumberResults);
+
+        return constraints;
+    }
+
+    /**
+     * Method to return the max number of results allowed.
+     * @return the maximum number of results.
+     */
+    protected int getMaxNumberResults() {
+        return this.maxNumberResults;
+    }
+
+    /**
+     * Method to return the scope.
+     * @return the scope
+     */
+    protected int getScope() {
+        return this.scope;
+    }
+
+    /**
+     * Method to return the timeout. 
+     * @return the timeout.
+     */
+    protected int getTimeout() {
+        return this.timeout;
+    }
+
+    public final void setScope(final int scope) {
+        this.scope = scope;
+    }
+
+    /**
+     * @param maxNumberResults The maxNumberResults to set.
+     */
+    public final void setMaxNumberResults(final int maxNumberResults) {
+        this.maxNumberResults = maxNumberResults;
+    }
+
+    /**
+     * @param timeout The timeout to set.
+     */
+    public final void setTimeout(final int timeout) {
+        this.timeout = timeout;
+    }
+    
+    public final LdapTemplate getLdapTemplate() {
+    	return this.ldapTemplate;
+    }
+
+    protected final String getFilter() {
+        return this.filter;
+    }
+    
+    public final void setFilter(String filter) {
+    	this.filter = filter;
+    }
+    
+    protected final PrincipalNameTransformer getPrincipalNameTransformer() {
+        return this.principalNameTransformer;
+    }
+
+	public void setPrincipalNameTransformer(
+			PrincipalNameTransformer principalNameTransformer) {
+		this.principalNameTransformer = principalNameTransformer;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		ldapTemplate = new LdapTemplate(ldapContextSource);
+		ldapTemplate.setIgnorePartialResultException(ignorePartialResultException);
 	}
 }

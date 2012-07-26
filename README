@@ -1,159 +1,23 @@
-CAS-LPPE/Password Manager
+CAS Password Manager for CAS 3.5
 Drew Mazurek <dmazurek@unicon.net>
-Drew Wills
+Drew Wills <awills@unicon.net>
 Unicon, Inc.
 ------------------------------------------------------------------------
 
 Background
 ----------
+The previous version of CAS-LPPE/PM has been updated to support CAS 3.5
+and its built-in LPPE extensions. More documentation will be forthcoming.
+Thanks for your patience.
 
-This project is an extension of Bill Thompson's CAS-LPPE effort
-(https://wiki.jasig.org/display/CASUM/LPPE+Module+Integration+Notes), adding
-Password Management directly to the CAS interface.  The original password
-manager work was performed for Onondaga Community College 
-(http://www.sunyocc.edu), who graciously allowed us to make this product 
-available to the public.  Features include:
+Very Brief Quickstart
+---------------------
+1. Check out this Maven overlay project from github.
+2. Copy src/main/webapp/WEB-INF/cas.properties.example to cas.properties
+3. Edit it for your setup
+4. mvn clean package
+5. If all goes well, the webapp will be in target/cas.war.
 
-* out of the box integration with both OpenLDAP and Active Directory
-* password change module
-* forgotten password module, complete with security question setup
-* password expiration module (Active Directory only)
-  + warning if your password's about to expire, forced password change
-    once it's expired
-* reCAPTCHA integration with password change/reset pages
-* support for multiple LDAP servers
-    
-Build & Installation
---------------------
+There will be more documentation here in a few days.
 
-Prerequisites
--------------
-
-Maven 2.2.x (http://maven.apache.org)
-Git client (http://git-scm.com)
-
-CAS Server LPPE:
-
-% git clone https://github.com/Jasig/cas.git -b feature-lppe
-% cd cas
-% mvn clean install
-
-Recaptcha4j version 0.0.8:
-
-% wget 'http://recaptcha4j.googlecode.com/files/recaptcha4j-0.0.8.jar'
-% mvn install:install-file -Dfile=recaptcha4j-0.0.8.jar \
-    -DgroupId=net.tanesha.recaptcha4j -DartifactId=recaptcha4j \
-    -Dversion=0.0.8 -Dpackaging=jar
-(You also need to set up an account at http://www.google.com/recaptcha.)
-
-Configuration
--------------
-
-A few files need to be configured during the build and deploy process.
-
-  src/main/webapp/WEB-INF/deployerConfigContext.xml:
-  
-    This file contains configuration for LDAP authentication.  Most properties
-    you'll need to change have been extracted to a separate file.  The only
-    change you would need to make to this file is to uncomment the
-    appropriate sections if you'll be using multiple LDAP servers.  If you
-    search this file for "Uncomment", you'll see the two sections you may
-    need to edit.
-    
-    This file is also configured to use the CAS-LPPE 
-    BindLdapAuthenticationHandler.  If you are using OpenLDAP and wish
-    to use the FastBindLdapAuthenticationHandler, you would configure it
-    in this file.
-
-    (See also https://wiki.jasig.org/display/CASUM/Configuring.  If there
-     are files referenced in that document that you need to edit that
-     aren't part of this overlay project, download the CAS-LPPE source
-     and copy them from that source tree to where they belong within
-     this project.)
-    
-  src/main/webapp/WEB-INF/spring-configuration/passwordManagerContext.xml:
-  
-    This file contains the framework for the settings for the password manager 
-    itself.  Most of the actual settings have been extracted to a separate
-    file.  However, since OpenLDAP and Active Directory require different
-    configuration options, you will need to uncomment the appropriate sections
-    within the ldapServer blocks.  If you will be running multiple LDAP
-    servers, you will need to uncomment references to them under the
-    ldapPasswordManagerService, as well as an ldapServer block and an
-    ldapContextSource block.  Follow the instructions that are included
-    within this file.
-    
-  examples/passwordManager.properties:
-  
-    This is the file that contains all of the LDAP configuration options you
-    will need to set.  This file must be copied from the examples directory
-    and placed in cas's classpath inside Tomcat (or whatever servlet container
-    you happen to use).  For Tomcat, you can place the file under the lib/
-    directory or you can copy it to the cas WEB-INF/lib directory.
-    
-    All of the configuration options in this file are annotated, so please
-    read through the file and set everything appropriately.
-
-  src/main/webapp/WEB-INF/view/jsp/default/ui/*.jsp,
-  src/main/webapp/WEB-INF/classes/messages_en.properties:
-  
-    Edit the views to your liking.  This is a CAS overlay project, so if you
-    need to edit a JSP file that isn't here, you can download the CAS Server
-    3.4.10 distribution and copy the file from there into this directory.
-
-Building
---------
-
-To build the CAS-LPPE/PM server, run the following from within the cas/
-folder:
-
-% mvn clean install
-
-If the build was successful, the CAS webapp can be found under target/cas.war.
-Be sure to have placed passwordManager.properties somewhere in the CAS
-classpath (see above) and then you are ready to deploy the webapp to your
-servlet container!
-
-Troubleshooting
----------------
-
-Startup errors:
-
-  The trickiest part about this configuration is the support for multiple
-  server types.  If you get Spring startup errors, make sure the appropriate
-  blocks in the XML configuration files are commented out or uncommented as 
-  required.
-  
-Other:
-
-  Check cas.log.  If there are no obvious errors, try turning on debug 
-  logging.  Edit cas/WEB-INF/classes/log4j.xml and change the log level 
-  for the org.jasig.cas.pm appender from INFO to DEBUG.  Then check cas.log
-  to see if you can spot anything that looks wrong.
-
-  This is a pretty new project, so I'm not sure what can go wrong yet. :)  If
-  you do run into an issue, try emailing the CAS community discussion list.
-  You can subscribe by visiting http://www.jasig.org/cas/mailing-lists.  I'm
-  on the list, so maybe I can help out!
-
-To-Dos
-------
-
-There's no guaranteed timeline for any of the following, but the following
-are possible future improvements this project could use:
-
-* ability to change security questions
-* ability to have more than one security question.  Hooks for this feature
-  already exist, and it may actually work as is, but it hasn't been tested at
-  all.
-* make the configuration a little more clear
-* add flags for enabling/disabling certains aspects of the password manager
-* unit/integration tests would be nice
-* remove dependence on CAS-LPPE code base if Active Directory support isn't
-  required
-* add back-end implementations other than LDAP
-* a little more Active Directory QA.  After the code was given to Onondaga, 
-  changes had to be made before it could go public.  I unfortunately didn't
-  have ready access to an AD server, so that part could use a little more
-  validation.  If you're out there and willing to help, we'd love to hear from
-  you through the CAS mailing lists!
+Drew Mazurek, 7/26/12

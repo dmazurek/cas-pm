@@ -2,9 +2,12 @@ package org.jasig.cas.pm.service;
 
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jasig.cas.pm.UserLockedOutException;
+import org.jasig.cas.pm.ldap.LdapServer;
 import org.jasig.cas.pm.web.flow.SecurityChallenge;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.NameNotFoundException;
@@ -18,6 +21,7 @@ import org.springframework.ldap.core.ObjectRetrievalException;
 public class LdapPasswordManagerService implements PasswordManagerService {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+	@Size(min=1)
 	private List<LdapServer> ldapServers;
 	private PasswordManagerLockoutService lockoutService;
 	
@@ -128,7 +132,9 @@ public class LdapPasswordManagerService implements PasswordManagerService {
 
 	@Override
 	public void setUserPassword(String username, String password) {
+		logger.debug("We have " + ldapServers.size() + " LDAP servers to look at.");
 		for(LdapServer ldapServer : ldapServers) {
+			logger.debug("Checking server " + ldapServer.getDescription() + " for user " + username);
 			try {
 				ldapServer.setPassword(username, password);
 				logger.debug("Successfully set password for " + username + " at " + ldapServer.getDescription());
