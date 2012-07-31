@@ -8,14 +8,6 @@ import org.jasig.cas.pm.web.flow.SecurityChallenge;
  * @author Drew Mazurek &lt;dmazurek@unicon.net&gt;
  */
 public interface PasswordManagerService {
-
-	/**
-	 * <p>Gets the password expiration information for the given username.</p>
-	 * @param username Username to retrieve password information for
-	 * @return PasswordWarningInfo object containing expiration information
-	 * for the given username. Must not return null.
-	 */
-	public PasswordWarningInfo getPasswordWarningInfo(String username);
 	
 	/**
 	 * <p>Gets the given user's security challenge question(s).</p>

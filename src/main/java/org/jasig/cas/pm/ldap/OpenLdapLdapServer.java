@@ -64,13 +64,6 @@ public class OpenLdapLdapServer extends AbstractLdapServer implements
 	public void setEncryptionAlgorithm(String encryptionAlgorithm) {
 		this.encryptionAlgorithm = encryptionAlgorithm;
 	}
-
-	@Override
-	public PasswordWarningInfo getPasswordWarningInfo(String username) {
-		// OpenLDAP implementation doesn't (currently) support password
-		// expiration.
-		return new PasswordWarningInfo(0, false);
-	}
 	
 	@Override
 	public void afterPropertiesSet() throws Exception {

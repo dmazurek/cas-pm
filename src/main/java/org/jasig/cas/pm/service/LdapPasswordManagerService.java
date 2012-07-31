@@ -26,6 +26,7 @@ public class LdapPasswordManagerService implements PasswordManagerService {
 	private PasswordManagerLockoutService lockoutService;
 	
 	@Override
+	@Deprecated
 	public PasswordWarningInfo getPasswordWarningInfo(String username) {
 		
 		logger.debug("Getting password warning info for " + username);

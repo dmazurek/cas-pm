@@ -302,9 +302,6 @@ public abstract class AbstractLdapServer implements LdapServer, InitializingBean
 			return false;
 		}
 	}
-	
-	@Override
-	public abstract PasswordWarningInfo getPasswordWarningInfo(String username);
 
 	public void setLdapContextSource(LdapContextSource ldapContextSource) {
 		this.ldapContextSource = ldapContextSource;

@@ -2,7 +2,6 @@ package org.jasig.cas.pm.ldap;
 
 import javax.naming.directory.ModificationItem;
 
-import org.jasig.cas.pm.service.PasswordWarningInfo;
 import org.jasig.cas.pm.web.flow.SecurityChallenge;
 
 public interface LdapServer {
@@ -18,8 +17,6 @@ public interface LdapServer {
 	public void setUserSecurityChallenge(String username, SecurityChallenge securityChallenge);
 	
 	public SecurityChallenge getDefaultSecurityChallenge(String username);
-	
-	public PasswordWarningInfo getPasswordWarningInfo(String username);
 	
 	/**
 	 * <p>Gets a user-specified description for logging purposes</p>
