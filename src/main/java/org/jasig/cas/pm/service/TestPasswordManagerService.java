@@ -11,17 +11,6 @@ import org.jasig.cas.pm.web.flow.SecurityQuestion;
 public class TestPasswordManagerService implements PasswordManagerService {
 
 	private final Random random = new Random();
-	
-	@Override
-	public PasswordWarningInfo getPasswordWarningInfo(String username) {
-		
-		// 50/50 shot of having an expired password
-		boolean expired = (random.nextBoolean());
-
-		PasswordWarningInfo peInfo = new PasswordWarningInfo(0, expired);
-		
-		return peInfo;
-	}
 
 	@Override
 	public SecurityChallenge getUserSecurityChallenge(String username) {
@@ -71,8 +60,6 @@ public class TestPasswordManagerService implements PasswordManagerService {
 			changePasswordResult.setDefaultMessage("There was an error setting your new password. Please try again.");
 			changePasswordResult.setMessageKey("setPassword.error");
 		}
-		
-		//return changePasswordResult;
 	}
 
 	@Override
@@ -96,9 +83,6 @@ public class TestPasswordManagerService implements PasswordManagerService {
 			changePasswordResult.setDefaultMessage("There was an error changing your password. Please try again.");
 			changePasswordResult.setMessageKey("changePassword.error");
 		}
-		
-		// TODO Auto-generated method stub
-		//return null;
 	}
 
 	@Override

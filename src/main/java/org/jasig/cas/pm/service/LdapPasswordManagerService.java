@@ -24,36 +24,6 @@ public class LdapPasswordManagerService implements PasswordManagerService {
 	@Size(min=1)
 	private List<LdapServer> ldapServers;
 	private PasswordManagerLockoutService lockoutService;
-	
-	@Override
-	@Deprecated
-	public PasswordWarningInfo getPasswordWarningInfo(String username) {
-		
-		logger.debug("Getting password warning info for " + username);
-		
-		for(LdapServer server : ldapServers) {
-			try {
-				PasswordWarningInfo passwordWarningInfo = server.getPasswordWarningInfo(username);
-				if(logger.isDebugEnabled()) {
-					if(passwordWarningInfo != null) {
-						logger.debug("Successfully got password warning info for " + username + " at " + server.getDescription());
-					} else {
-						logger.debug("Got null password warning info for " + username + " at " + server.getDescription());
-					}
-				}
-				return passwordWarningInfo;
-			} catch(NameNotFoundException ex) {
-				logger.debug("Didn't find " + username + " in " + server.getDescription());
-				// ignore it... try the next server
-			} catch(ObjectRetrievalException ex) {
-				logger.debug("Multiple results found for " + username);
-				// ignore it... try the next server
-			}
-		}
-		
-		throw new NameNotFoundException("Couldn't find username " 
-				+ username + " in any of provided servers.");
-	}
 
 	@Override
 	public SecurityChallenge getUserSecurityChallenge(String username) {
