@@ -146,6 +146,8 @@ are possible future improvements this project could use:
 * ability to change security questions
 * ability to have more than one custom security question.  Hooks for this
   feature already exist, but it's not fully implemented.
+* allow administrator to predefine a list of security questions
 * add flags for enabling/disabling certain aspects of the password manager
 * unit/integration tests would be nice
 * add back-end security question stores other than LDAP (e.g. DBMS)
+
