@@ -205,14 +205,26 @@ ldap.pm.answer.attr=securityAnswer
 # LDAP server type. Value is either org.jasig.cas.pm.ldap.ActiveDirectoryLdapServer
 # or org.jasig.cas.pm.ldap.OpenLdapLdapServer
 ldap.pm.server.class=org.jasig.cas.pm.ldap.ActiveDirectoryLdapServer
+
+# The attribute that holds the account username/NetID
 ldap.pm.username.attr=sAMAccountName
+
+# The attribute that holds the user passwords. This is usually unicodePwd
+# for AD and userPassword for OpenLDAP.
 ldap.pm.password.attr=unicodePwd
+
+# An optional description of the LDAP server. Used only for logging purposes.
 ldap.pm.server.description=
 
+# ReCAPTCHA keys. Sign up at http://www.google.com/recaptcha.
 ldap.pm.recaptcha.key.public=<recaptcha public key>
 ldap.pm.recaptcha.key.private=<recaptcha private key>
 
+# The number of attempts a user is allowed to answer the security questions
 ldap.pm.lockout.incorrect-attempts=999999
+
+# The number of seconds the user is locked out after answering the security
+# questions incorrectly too many times
 ldap.pm.lockout.incorrect-attempts.lockout-seconds=0
 
 # OpenLDAP Example
