@@ -29,6 +29,8 @@ the end user. Features include:
     set. (Configurable.)
   * support for Active Directory and OpenLDAP. (Password expiration
     features aren't available for OpenLDAP.)
+  * configurable password security level enforcement (E.g. 8 characters, 
+    upper/lowercase, etc.)
   * password change lockout with too many incorrect security question attempts
   * ReCAPTCHA integration to aid against scripted attacks
     
@@ -77,9 +79,17 @@ there are a few files you will need to configure.
 
   src/main/webapp/WEB-INF/spring-configuration/passwordManagerContext.xml:
   
-    The only thing you'll need to configured here is enabling an
-    encryption algorithm if you're using OpenLDAP. In that case, towards
-    the bottom of the file, you'll see a section of the XML that you will
+    There are only two things you may need to configure in this file. One
+    is the password security policy regular expression. By default passwords
+    must be at least 8 characters and contain at least one uppercase letter,
+    one lowercase letter, and one digit. If you want to change that, modify
+    the passwordRegex property of the changePasswordBeanValidator.
+  
+    The other possible configuration option is the encryption algorithm if 
+    you're using OpenLDAP. If you're using OpenLDAP and don't set this, 
+    passwords will be stored unencrypted. (Active Directory automatically
+    encrypts all passwords.) If you are running OpenLDAP, towards the bottom
+    of the passwordManagerContext.xml, you'll see the section that you will 
     need to uncomment.
     
   src/main/webapp/WEB-INF/cas.properties.example:
