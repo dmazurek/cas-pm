@@ -79,27 +79,24 @@
 		<transition to="passwordPostCheck" />
 	</action-state>
 
-	<decision-state id="passwordPostCheck">
-		<if test="flowScope.service != null" then="warnPassRedirect" else="pwdWarningPolicyUrlCheck" />
-	</decision-state>
+    <decision-state id="passwordPostCheck">
+        <if test="flowScope.service != null" then="warnPassRedirect" else="pwdWarningPolicyUrlCheck" />
+    </decision-state>
+
+    <action-state id="warnPassRedirect">
+        <evaluate expression="generateServiceTicketAction" />
+        <transition on="success" to="pwdWarningPolicyUrlCheck" />
+        <transition on="error" to="generateLoginTicket" />
+        <transition on="gateway" to="gatewayServicesManagementCheck" />
+    </action-state>
 	
 	<action-state id="pwdWarningPolicyUrlCheck">
-	    <on-entry>
-            <set name="flowScope.passwordPolicyUrl" value="passwordPolicyAction.getPasswordPolicyUrl()" />
-        </on-entry>
-	    <evaluate expression="flowScope.passwordPolicyUrl == 'pm'" />
+	    <evaluate expression="passwordPolicyAction.getPasswordPolicyUrl()" result="flowScope.passwordPolicyUrl" />
+	    <evaluate expression="flowScope.passwordPolicyUrl eq 'pm'" />
 	    <transition on="yes" to="passwordManager">
             <set name="flashScope.pmTask" value="'passwordWarn'"/>
-            <set name="flowScope.pmNext" value="'redirectToLogin'"/>
         </transition>
         <transition on="no" to="pwdWarningPostView" />
-	</action-state>
-
-	<action-state id="warnPassRedirect">
-		<evaluate expression="generateServiceTicketAction" />
-		<transition on="success" to="pwdWarningPostView" />
-		<transition on="error" to="generateLoginTicket" />
-		<transition on="gateway" to="gatewayServicesManagementCheck" />
 	</action-state>
 
 	<end-state id="pwdWarningPostView" view="casWarnPassView" />
@@ -129,11 +126,9 @@
         <!-- CAS Password Manager Transitions -->
         <transition on="forgotPassword" to="passwordManager" validate="false">
             <set name="flashScope.pmTask" value="'forgotPassword'"/>
-            <set name="flowScope.pmNext" value="'redirectToLogin'"/>
         </transition>
         <transition on="changePassword" to="passwordManager" validate="false">
             <set name="flashScope.pmTask" value="'changePassword'"/>
-            <set name="flowScope.pmNext" value="'redirectToLogin'"/>
         </transition>
 	</view-state>
 	
@@ -160,7 +155,6 @@
         <transition on="accountDisabled" to="casAccountDisabledView" />
         <transition on="mustChangePassword" to="passwordManager">
             <set name="flashScope.pmTask" value="'forceChangePassword'"/>
-            <set name="flowScope.pmNext" value="'redirectToLogin'"/>
         </transition>
         <transition on="accountLocked" to="casAccountLockedView" />
         <transition on="badHours" to="casBadHoursView" />
@@ -168,7 +162,6 @@
         <transition on="passwordExpired" to="passwordManager">
             <!-- <set name="flashScope.credentials" value="flowScope.credentials" /> -->
             <set name="flashScope.pmTask" value="'forceChangePassword'"/>
-            <set name="flowScope.pmNext" value="'redirectToLogin'"/>
         </transition>
     </action-state>
 	
@@ -183,7 +176,6 @@
         <transition on="success" to="serviceCheck" />
         <transition on="error" to="passwordManager">
             <set name="flashScope.pmTask" value="'setupSecurityQuestion'"/>
-            <set name="flowScope.pmNext" value="'serviceCheck'"/>
         </transition>
     </action-state>
 
@@ -218,8 +210,7 @@
         <input name="service" value="flowScope.service" type="java.lang.String"/>
         <input name="pmTask" value="flashScope.pmTask" type="java.lang.String"/>
         <input name="expireDays" value="flowScope.expireDays" type="java.lang.Integer"/>
-        <input name="passwordPolicyUrl" value="flowScope.passwordPolicyUrl" type="java.lang.String"/>
-        <transition on="pmExit" to="${flowScope.pmNext}"/>
+        <transition on="pmExit" to="redirectToLogin"/>
         <transition on="passwordSet" to="passwordSet"/>
         <transition on="helpDeskView" to="helpDeskView"/>
     </subflow-state>
@@ -257,7 +248,12 @@
     
     <end-state id="viewServiceSsoErrorView" view="viewServiceSsoErrorView" />
     
-    <end-state id="redirectToLogin" view="externalRedirect:login" />
+    <decision-state id="redirectToLogin">
+        <if test="flowScope.service != null" then="redirectToLoginWithService" else="redirectToLoginNoService" />
+    </decision-state>
+    
+    <end-state id="redirectToLoginWithService" view="externalRedirect:login?service=${flowScope.service}" />
+    <end-state id="redirectToLoginNoService" view="externalRedirect:login" />
 
 	<global-transitions>
         <!-- CAS-1023 This one is simple - redirects to a login page (same as renew) when 'ssoEnabled' flag is unchecked

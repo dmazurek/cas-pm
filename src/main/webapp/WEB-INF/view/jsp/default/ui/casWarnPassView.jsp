@@ -4,12 +4,10 @@
   <c:set var="ticketArg"  value="ticket=${serviceTicketId}"/>
 </c:if>
 <c:url var="changePasswordUrl" value="/login">
-  <c:param name="lt" value="${loginTicket}"/>
   <c:param name="execution" value="${flowExecutionKey}"/>
   <c:param name="_eventId" value="changePassword"/>
 </c:url>
 <c:url var="ignoreUrl" value="/login">
-  <c:param name="lt" value="${loginTicket}"/>
   <c:param name="execution" value="${flowExecutionKey}"/>
   <c:param name="_eventId" value="ignore"/>
 </c:url>
@@ -28,7 +26,7 @@
   </p>
 
   <c:choose>
-    <c:when test="${passwordPolicyUrl == 'pm'}">
+    <c:when test="${empty passwordPolicyUrl}">
       <p>
         <spring:message code="screen.warnpass.message.line1" arguments="${changePasswordUrl}" />
       </p>
